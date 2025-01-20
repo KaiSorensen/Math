@@ -1,2 +1,7 @@
-# Math
-The secrets of the universe. It's all there. LIFE IS FIERY WITH IT'S BEAUTY.
+# Math.c Library
+to those who find beauty in details of Mathematics
+by: Kai Sorensen
+
+## Description
+This library provides a collection of mathematical functions implemented in C.
+
