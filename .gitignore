@@ -9,3 +9,8 @@ main
 *.swp
 *.swo
 *~
+
+# Ignore the build directory
+.vscode/
+.cursor/
+.DS_Store/
