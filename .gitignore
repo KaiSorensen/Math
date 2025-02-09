@@ -1,0 +1,11 @@
+
+# Ignore compiled object files
+*.o
+
+# Ignore the compiled executable
+main
+
+# Ignore any other temporary or backup files
+*.swp
+*.swo
+*~
