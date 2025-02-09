@@ -1,7 +1,12 @@
-# Math.c Library
-to those who find beauty in details of Mathematics
-by: Kai Sorensen
+Where there is life there is a pattern, and where there is a pattern there is mathematics. 
+    - John D. Barrow
 
-## Description
-This library provides a collection of mathematical functions implemented in C.
+In mathematics, you don’t understand things. You just get used to them.
+    - John von Neumann
 
+God is a mathematician of a very high order.
+    - Paul Dirac
+
+
+Dependencies
+- libgmp-dev

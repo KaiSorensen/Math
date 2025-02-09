@@ -1,4 +1,4 @@
-CC = gcc
+CC = clang
 CFLAGS = -Wall -Wextra -std=c99
 OBJS = main.o mathtest.o math.o
 
@@ -19,6 +19,9 @@ math.o: math.c math.h
 clean:
 	rm -f main $(OBJS)
 	clear
+
+run: clean all
+	./main
 
 valgrind: main
 	valgrind --leak-check=full --show-leak-kinds=all ./main

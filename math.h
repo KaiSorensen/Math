@@ -1,14 +1,17 @@
 #ifndef MATH_H
 #define MATH_H
 
-#define EPSILON 1e-6
+#define EPSILON 1e-6 // used as "maximum margin of error" when needed
 #define PI 3.14159265358979323846
 // #define E 2.71828182845904523536
 
 typedef char* Str;
 
 // Sorting algorithms
-double* mergesort(double x[], int length);
+int* my_countsort(int *x, int length, int exp);
+int* my_radixsort(int *x, int length);
+double* my_mergesort(double *x, int length);
+// double* my_heapsort(double x[], int length);
 
 // Rounding functions
 double ceil(double x);

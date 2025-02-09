@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include <string.h>
+#include <string.h> // for memcpy
 #include "error.h"
 
 #define EPSILON 1e-6
@@ -8,18 +7,71 @@
 
 typedef char* Str;
 
-// ////////////////////////
-// // Sorting Algorithms //
-// ////////////////////////
+////////////////////////
+// Sorting Algorithms //
+////////////////////////
 
-extern double* mergesort(double* x, int length) {
-    //base case
+
+// O(n)
+extern int* my_countsort(int* x, int length, int exp) {
+    if(exp < 1 || (exp != 1 && exp % 10 != 0)) ERROR("grammar for exp: (10*)");
+
+    int sorted[length];
+    int counts[10] = {0}; // start with array of 0's
+
+    // count the appearances of each digit
+    for (int i = 0; i < length; i++) {
+        int digit = x[i] / exp % 10; // get's the digit at the 'exp' place
+        counts[digit]++;
+    }
+
+    // for each digit, get the trailing index of it's allocation range in outputs
+    for (int i = 1; i < 10; i++) { //note that it starts at 1!
+        counts[i] += counts[i - 1];
+    }
+
+    // sort items based on digit into 
+    for (int i = 0; i < length; i++) {
+        int digit = x[i] / exp % 10;
+        sorted[counts[digit] - 1] = x[i];
+        counts[digit]--;
+    }
+
+    memcpy(x, sorted, length * sizeof(int));
+    return x;
+}
+
+// O(n)
+extern int* my_radixsort(int* x, int length) {
+    int maxValue = 0;
+    for (int i = 0; i < length; i++) {
+        if (x[i] > maxValue) maxValue = x[i];
+    }
+
+    int exp = 1;
+    while (maxValue / exp > 0) {
+        my_countsort(x, length, exp);
+        exp *= 10;
+        //print array
+        printf("Array for exp: %d\n", exp/10);
+        for (int i = 0; i < length; i++) {
+            printf("%d ", x[i]);
+        }
+        printf("\n");
+    }
+    return x;
+}
+
+// O(n log n)
+// why am I using malloc
+extern double* my_mergesort(double* x, int length) {
+    //base casec
     if (length <= 1) return x;
 
     //recursively split array into two halves
     int mid = length / 2;
-    double* left = mergesort(x, mid);
-    double* right = mergesort(x + mid, length - mid);
+    double* left = my_mergesort(x, mid);
+    double* right = my_mergesort(x + mid, length - mid);
     double* sorted = (double*)malloc(length * sizeof(double));
 
     //merge
@@ -47,13 +99,10 @@ extern double* mergesort(double* x, int length) {
     return x;
 }
 
-extern int* radixsort(int* x, int length) {
-    return 0;
-}
-
-extern double* heapsort(double* x, int length) {
-    return 0;
-}
+// O(n log n)
+// extern double* my_heapsort(double* x, int length) {
+//     return 0;
+// }
 
 
 ////////////////////////
@@ -205,7 +254,7 @@ int graph_isomorphism(int a[], int b[], int c[], int n, int m);
 // Combinatorial functions
 extern long int factorial(long int x) {
     if (x == 0) return 1;
-    long int result;
+    long int result = x;
     for (int i = x - 1; i > 0; i--) result *= i;
     return result;
 }
@@ -218,9 +267,8 @@ int partition(int n);
 // Cryptography functions
 char* encrypt(char* text, int key);
 char* decrypt(char* text, int key);
-char* hash(char* text);
+char* sha512(char* text);
 
-char* unhash(char* text);
 char* hmac(char* text, char* key);
 char* sign(char* text, char* key);
 int verify(char* text, char* signature, char* key);
