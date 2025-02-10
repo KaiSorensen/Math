@@ -1,4 +1,4 @@
-#include <string.h> // for memcpy
+#include <string.h> // for memcpy, strlen, strcpy
 #include "error.h"
 
 #define EPSILON 1e-6
@@ -264,7 +264,41 @@ int partition(int n);
 // Cryptography functions
 char* encrypt(char* text, int key);
 char* decrypt(char* text, int key);
-char* sha512(char* text);
+
+// helper for sha512
+char* padTo512(char* text) {
+    int _512bits = 512 / 8; // 64 bytes
+    int _64bits  = 64 / 8; // 8 bytes
+
+    // calculate the padding parameters
+    long int textLen = strlen(text); // get the length of the string
+    int padLen = _512bits - (textLen % _512bits); // calculate the number of bits needed to pad the string to a multiple of 512
+    if (padLen == _512bits) padLen = 0; // if len is a already multiple of 512, no padding is needed
+    if (padLen < _64bits) padLen += _512bits; // ensure space for appending 64 bit string length for sha512
+
+    // allocate and instantiate the padded string
+    char* padded = (char*)malloc(textLen + padLen + 1); // allocate memory for the padded string, +1 for null terminator
+    if (!padded) ERROR("failed to allocate memory for padded string");
+    strcpy(padded, text); // copy the original string into the padded string
+    padded[textLen] = 0x80;  // place the 1 bit (as 1000-0000 to be correct bit-wise)
+    for (int i = 1; i < padLen; i++) padded[textLen + i] = '0'; // pad the string with 0 bits
+    long int bigEndianTextLen = __builtin_bswap64(textLen * 8); // ensures big-endian, as expected by sha512
+    memcpy(padded + textLen + padLen - _64bits, &bigEndianTextLen, _64bits); // append the 64 bit string length to the end of the string
+    padded[textLen + padLen] = '\0'; // null-terminate the string
+
+    return padded;
+}
+
+char* sha512(char* text) {
+
+
+
+
+
+
+
+    return 0;
+}
 
 char* hmac(char* text, char* key);
 char* sign(char* text, char* key);

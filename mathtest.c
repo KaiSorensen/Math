@@ -249,5 +249,5 @@ void run_tests() {
     test_power_functions();
     test_statistics_functions();
     int totalTests = passed + failed;
-    printf("\n*************************\n PASSED: %d%% (%d tests)\n*************************\n", (int)((passed/totalTests)*100),  totalTests);
+    printf("*************************\n PASSED: %d%% (%d tests)\n*************************\n\n", (int)((passed/totalTests)*100),  totalTests);
 }

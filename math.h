@@ -94,11 +94,11 @@ int factorial(int x);
 // // Cryptography functions
 // char* encrypt(char* text, int key);
 // char* decrypt(char* text, int key);
-// char* hash(char* text);
-// char* unhash(char* text);
+char* hash(char* text);
 // char* hmac(char* text, char* key);
 // char* sign(char* text, char* key);
 // int verify(char* text, char* signature, char* key);
+// int diffie_hellman(int a, int b, int p);
 
 // // Linear algebra functions
 // void add(double a[], double b[], double c[], int n, int m);
