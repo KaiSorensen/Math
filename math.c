@@ -18,22 +18,25 @@ extern int* my_countsort(int* x, int length, int exp) {
 
     int sorted[length];
     int counts[10] = {0}; // start with array of 0's
+    int indices[10] = {0}; // we will want both counts and the trailing-indices for later
 
     // count the appearances of each digit
     for (int i = 0; i < length; i++) {
         int digit = x[i] / exp % 10; // get's the digit at the 'exp' place
         counts[digit]++;
+        indices[digit]++;
     }
 
     // for each digit, get the trailing index of it's allocation range in outputs
     for (int i = 1; i < 10; i++) { //note that it starts at 1!
-        counts[i] += counts[i - 1];
+        indices[i] += indices[i - 1];
     }
 
     // sort items based on digit into 
     for (int i = 0; i < length; i++) {
         int digit = x[i] / exp % 10;
-        sorted[counts[digit] - 1] = x[i];
+        int index = indices[digit] - counts[digit]; // get the beginning index of the allocation range so that they're inserted in same order with which they came.
+        sorted[index] = x[i];
         counts[digit]--;
     }
 
@@ -52,12 +55,6 @@ extern int* my_radixsort(int* x, int length) {
     while (maxValue / exp > 0) {
         my_countsort(x, length, exp);
         exp *= 10;
-        //print array
-        printf("Array for exp: %d\n", exp/10);
-        for (int i = 0; i < length; i++) {
-            printf("%d ", x[i]);
-        }
-        printf("\n");
     }
     return x;
 }

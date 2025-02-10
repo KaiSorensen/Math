@@ -101,6 +101,7 @@ void test_radixsort() {
     ASSERT_array_ints(my_radixsort((int[]){5, 4, 3, 2, 1}, 5), (int[]){1, 2, 3, 4, 5}, 5, "test_radixsort([5,4,3,2,1])");
     ASSERT_array_ints(my_radixsort((int[]){30, 20, 10, 0, 10}, 5), (int[]){0, 10, 10, 20, 30}, 5, "test_radixsort([30,20,10,0,10])");
     ASSERT_array_ints(my_radixsort((int[]){1, 29, 333, 4, 5, 68, 7, 83, 912, 10}, 10), (int[]){1, 4, 5, 7, 10, 29, 68, 83, 333, 912}, 10, "test_radixsort([1,29,333,4,5,68,7,83,912,10])");
+    ASSERT_array_ints(my_radixsort((int[]){5500, 640, 920, 770, 830}, 5), (int[]){640, 770, 830, 920, 5500}, 5, "test_radixsort([5500,640,920,770,830])");
 }
 
 
