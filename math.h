@@ -5,7 +5,7 @@
 #define PI 3.14159265358979323846
 // #define E 2.71828182845904523536
 
-typedef char* Str;
+typedef char* String;
 
 // Sorting algorithms
 int* my_countsort(int *x, int length, int exp);
@@ -20,7 +20,7 @@ double round(double x);
 double absVal(double x);
 
 // // power functions
-double squareRoot(double x);
+double squareRoot(double x, double precision);
 double power(double x, int y);
 // double exp(double x);
 // double log(double x);
@@ -50,7 +50,7 @@ double range(double* x, int n);
 // double kurtosis(double x[], int n);
 
 // // Number theory functions
-// int is_prime(int x);
+int is_prime(int x);
 // int gcd(int a, int b);
 // int lcm(int a, int b);
 // int factors(int x);
@@ -94,7 +94,8 @@ int factorial(int x);
 // // Cryptography functions
 // char* encrypt(char* text, int key);
 // char* decrypt(char* text, int key);
-char* hash(char* text);
+char* padTo512(char* text);
+char* sha512(char* text);
 // char* hmac(char* text, char* key);
 // char* sign(char* text, char* key);
 // int verify(char* text, char* signature, char* key);

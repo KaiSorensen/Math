@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "math.h"
 
 #define GREEN_TEXT "\033[0;32m"
@@ -7,8 +8,6 @@
 
 #define PASSED GREEN_TEXT "passed" RESET_COLOR
 #define FAILED RED_TEXT "**FAILED**" RESET_COLOR
-
-typedef char* String; //String datatype for ease of use :)
 
 float passed = 0;
 float failed = 0;
@@ -79,6 +78,10 @@ void ASSERT_array_doubles(double* actual, double* expected, int length, String f
         }
     } 
     printf("\t%s  %s\n", funcName, PASSED); passed++;
+}
+void ASSERT_strings(String actual, String expected, String funcName) {
+    if (strcmp(actual, expected) != 0) {printf("\t%s  %s (expected: %s -- found: %s)\n", funcName, FAILED, expected, actual); failed++;} 
+    else {printf("\t%s  %s\n", funcName, PASSED); passed++;}
 }
 
 
@@ -173,15 +176,16 @@ void test_rounding_functions() {
 /////////////////////
 
 void test_sqrt() {
-    ASSERT_double(squareRoot(4), 2.0, "test_sqrt(4)");
-    ASSERT_double(squareRoot(625), 25.0, "test_sqrt(625)");
-    ASSERT_double(squareRoot(0), 0.0, "test_sqrt(0)");
-    ASSERT_double(squareRoot(1), 1.0, "test_sqrt(1)");
-    ASSERT_double(squareRoot(2), 1.414214, "test_sqrt(2)");
-    ASSERT_double(squareRoot(30), 5.477226, "test_sqrt(30)");
-    ASSERT_double(squareRoot(1234), 35.128336, "test_sqrt(1234)");
-    ASSERT_double(squareRoot(55555), 235.701082, "test_sqrt(55555)");
-    ASSERT_double(squareRoot(PI), 1.772454, "test_sqrt(PI)");
+    ASSERT_double(squareRoot(4, EPSILON), 2.0, "test_sqrt(4)");
+    ASSERT_double(squareRoot(625, EPSILON), 25.0, "test_sqrt(625)");
+    ASSERT_double(squareRoot(0, EPSILON), 0.0, "test_sqrt(0)");
+    ASSERT_double(squareRoot(1, EPSILON), 1.0, "test_sqrt(1)");
+    ASSERT_double(squareRoot(2, EPSILON), 1.414214, "test_sqrt(2)");
+    ASSERT_double(squareRoot(30, EPSILON), 5.477226, "test_sqrt(30)");
+    ASSERT_double(squareRoot(1234, EPSILON), 35.128336, "test_sqrt(1234)");
+    ASSERT_double(squareRoot(55555, EPSILON), 235.701082, "test_sqrt(55555)");
+    ASSERT_double(squareRoot(PI, EPSILON), 1.772454, "test_sqrt(PI)");
+    ASSERT_double(squareRoot(0.25, EPSILON), 0.5, "test_sqrt(0.25)");
 }
 
 void test_power_functions() {
@@ -227,7 +231,6 @@ void test_range() {
     ASSERT_double(range((double[]){0.0, 0.0, 0.0, 0.0, 0.1}, 5), 0.1, "test_range([0,0,0,0,0.1])");
     ASSERT_double(range((double[]){1e-10, -1e-11, 1e-12, 1e-13, 1e-14}, 5), 1.1e-10, "test_range([1e-10,-1e-11,1e-12,1e-13,1e-14])");
     ASSERT_double(range((double[]){5.0}, 1), 0.0, "test_range([5])");
-    ASSERT_double(range((double[]){}, 0), 0.0, "test_range([])");
 }
 
 void test_statistics_functions() {
@@ -240,6 +243,42 @@ void test_statistics_functions() {
 }
 
 
+/////////////////////////////
+// NUMBER THEORY FUNCTIONS //
+/////////////////////////////
+
+void test_is_prime() {
+    ASSERT_int(is_prime(1), 0, "test_is_prime(1)");
+    ASSERT_int(is_prime(2), 1, "test_is_prime(2)");
+    ASSERT_int(is_prime(3), 1, "test_is_prime(3)");
+    ASSERT_int(is_prime(4), 0, "test_is_prime(4)");
+    ASSERT_int(is_prime(5), 1, "test_is_prime(5)");
+    ASSERT_int(is_prime(6), 0, "test_is_prime(6)");
+    ASSERT_int(is_prime(7), 1, "test_is_prime(7)");
+    ASSERT_int(is_prime(8), 0, "test_is_prime(8)");
+    ASSERT_int(is_prime(51), 0, "test_is_prime(51)");
+}
+
+void test_number_theory_functions() {
+    printf("Testing number theory functions...\n"); printf("\n");
+    test_is_prime(); printf("\n");
+    printf("\n");
+}
+
+
+////////////////////////////
+// CRYPTOGRAPHY FUNCTIONS //
+////////////////////////////
+
+void test_sha512() {
+    ASSERT_strings(sha512("hello"), "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d", "test_sha512('hello')");
+    ASSERT_strings(sha512("world"), "486ea46224d1e0b4c1b6f0d61c4a1e0f0a9b6d3a", "test_sha512('world')");
+}
+void test_cryptography_functions() {
+    printf("Testing cryptography functions...\n"); printf("\n");
+    test_sha512(); printf("\n");
+    printf("\n");
+}
 
 
 void run_tests() {
@@ -248,6 +287,8 @@ void run_tests() {
     test_rounding_functions();
     test_power_functions();
     test_statistics_functions();
+    test_number_theory_functions();
+    test_cryptography_functions();
     int totalTests = passed + failed;
     printf("*************************\n PASSED: %d%% (%d tests)\n*************************\n\n", (int)((passed/totalTests)*100),  totalTests);
 }

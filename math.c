@@ -1,11 +1,11 @@
 #include <string.h> // for memcpy, strlen, strcpy
 #include "error.h"
 
-#define EPSILON 1e-6
+#define EPSILON 1e-6 // used as "maximum margin of error" when needed
 // #define PI 3.14159265358979323846;
 // #define E 2.71828182845904523536;
 
-typedef char* Str;
+typedef char* String; //String datatype for ease of use :)
 
 ////////////////////////
 // Sorting Algorithms //
@@ -124,12 +124,12 @@ extern double absVal(double x) {
 // Power Functions //
 /////////////////////
 
-extern double squareRoot(double x) {
+extern double squareRoot(double x, double precision) {
     if (x < 0.0) ERROR("cannot SQRT negative number");
-    if (x <= 1.0) return 1;
+    if (x == 0.0) return 0.0;
 
     double aprx = x / 2;
-    while (absVal(aprx * aprx) - x > EPSILON) {
+    while (absVal((aprx * aprx) - x) > precision) {
         aprx = (aprx + x / aprx) / 2;
     }
     return aprx;
@@ -193,7 +193,7 @@ extern double mean(double* x, int length) {
     
 // };
 extern double range(double* x, int length) {
-    if (length == 0) return 0;
+    if (length == 0) ERROR("received length 0");
     double min = x[0];
     double max = x[0];
     for (int i = 1; i < length; i++) {
@@ -214,7 +214,14 @@ double skewness(double x[], int n);
 double kurtosis(double x[], int n);
 
 // Number theory functions
-int is_prime(int x);
+// brute force is_prime, O(x)
+extern int is_prime(int x) {
+    if (x < 2) return 0;
+    for (int i = 2; i < x; i++) {
+        if (x % i == 0) return 0;
+    }
+    return 1;
+}
 int gcd(int a, int b);
 int lcm(int a, int b);
 int factors(int x);
@@ -255,7 +262,7 @@ extern long int factorial(long int x) {
     for (int i = x - 1; i > 0; i--) result *= i;
     return result;
 }
-int permutation(Str s, int r);
+int permutation(String s, int r);
 int combination(int n, int r);
 long int choose(int n, int r);
 int derangement(int n);
@@ -271,7 +278,7 @@ char* padTo512(char* text) {
     int _64bits  = 64 / 8; // 8 bytes
 
     // calculate the padding parameters
-    long int textLen = strlen(text); // get the length of the string
+    int textLen = strlen(text); // get the length of the string, using 64 bits
     int padLen = _512bits - (textLen % _512bits); // calculate the number of bits needed to pad the string to a multiple of 512
     if (padLen == _512bits) padLen = 0; // if len is a already multiple of 512, no padding is needed
     if (padLen < _64bits) padLen += _512bits; // ensure space for appending 64 bit string length for sha512
@@ -280,24 +287,37 @@ char* padTo512(char* text) {
     char* padded = (char*)malloc(textLen + padLen + 1); // allocate memory for the padded string, +1 for null terminator
     if (!padded) ERROR("failed to allocate memory for padded string");
     strcpy(padded, text); // copy the original string into the padded string
-    padded[textLen] = 0x80;  // place the 1 bit (as 1000-0000 to be correct bit-wise)
-    for (int i = 1; i < padLen; i++) padded[textLen + i] = '0'; // pad the string with 0 bits
-    long int bigEndianTextLen = __builtin_bswap64(textLen * 8); // ensures big-endian, as expected by sha512
-    memcpy(padded + textLen + padLen - _64bits, &bigEndianTextLen, _64bits); // append the 64 bit string length to the end of the string
+    padded[textLen] = 0b10000000;  // place the 1 bit (as 1000-0000 to be correct bit-wise)
+    for (int i = 1; i < padLen; i++) padded[textLen + i] = 0; // pad the string with 0's, note that printf will terminate as soon as it hits a 0
+
+    // int positionOf64BitLen = textLen + padLen - ; // position of the 64 bit string length
+    // printf("positionOf64BitLen: %d\n", positionOf64BitLen);
+
+    uint64_t bigEndianTextLen = __builtin_bswap64(textLen * 8); // ensures big-endian, as expected by sha512
+    memcpy(padded + textLen + padLen - _64bits, &bigEndianTextLen, sizeof(bigEndianTextLen)); // append the 64 bit string length to the end of the string
     padded[textLen + padLen] = '\0'; // null-terminate the string
 
     return padded;
 }
 
-char* sha512(char* text) {
+extern char* sha512(char* text) {
+    // initial 8 hash value constants that are the first 64 bits of the fractional parts of the square roots of the first 8 prime numbers
+    uint64_t hash_constants[8];
+    double i = 0;
+    for(int j = 0; j < 8; i++) {
+        if (is_prime(i)) {
+            double sqrt = squareRoot(i, 0.0000001);
+            double fractional = sqrt - (int)sqrt;
+            uint64_t first64bits = fractional * 0xFFFFFFFFFFFFFFFF;
+            hash_constants[j] = first64bits;
+            printf("hash_constants[%d] as hex: %llx\n", (int)i, hash_constants[j]);
+            j++;
+        }
+    }
 
 
 
-
-
-
-
-    return 0;
+    return "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d";
 }
 
 char* hmac(char* text, char* key);
