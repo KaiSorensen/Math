@@ -21,6 +21,7 @@ double absVal(double x);
 
 // // power functions
 double squareRoot(double x, double precision);
+double cubeRoot(double x, double precision);
 double power(double x, int y);
 // double exp(double x);
 // double log(double x);
@@ -92,13 +93,13 @@ int factorial(int x);
 // int partition(int n);
 
 // // Cryptography functions
-// char* encrypt(char* text, int key);
-// char* decrypt(char* text, int key);
-char* padTo512(char* text);
-char* sha512(char* text);
-// char* hmac(char* text, char* key);
-// char* sign(char* text, char* key);
-// int verify(char* text, char* signature, char* key);
+// String encrypt(String text, int key);
+// String decrypt(String text, int key);
+String padTo256(String text);
+String sha256(String text);
+// String hmac(String text, String key);
+// String sign(String text, String key);
+// int verify(String text, String signature, String key);
 // int diffie_hellman(int a, int b, int p);
 
 // // Linear algebra functions
@@ -148,6 +149,6 @@ char* sha512(char* text);
 // void k_modes(double a[], double b[], double c[], int n, int m);
 
 // // Algebra functions
-// void solve_X(char* expression);
+// void solve_X(String expression);
 
 #endif // MATH_H

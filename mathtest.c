@@ -188,9 +188,23 @@ void test_sqrt() {
     ASSERT_double(squareRoot(0.25, EPSILON), 0.5, "test_sqrt(0.25)");
 }
 
+void test_cubeRoot() {
+    ASSERT_double(cubeRoot(8, EPSILON), 2.0, "test_cubeRoot(8)");
+    ASSERT_double(cubeRoot(27, EPSILON), 3.0, "test_cubeRoot(27)");
+    ASSERT_double(cubeRoot(0, EPSILON), 0.0, "test_cubeRoot(0)");
+    ASSERT_double(cubeRoot(1, EPSILON), 1.0, "test_cubeRoot(1)");
+    ASSERT_double(cubeRoot(2, EPSILON), 1.259921, "test_cubeRoot(2)");
+    ASSERT_double(cubeRoot(30, EPSILON), 3.107233, "test_cubeRoot(30)");
+    ASSERT_double(cubeRoot(1234, EPSILON), 10.079368, "test_cubeRoot(1234)");
+    ASSERT_double(cubeRoot(55555, EPSILON), 39.588379, "test_cubeRoot(55555)");
+    ASSERT_double(cubeRoot(PI, EPSILON), 1.464591, "test_cubeRoot(PI)");
+    ASSERT_double(cubeRoot(0.125, EPSILON), 0.5, "test_cubeRoot(0.125)");
+}
+
 void test_power_functions() {
     printf("Testing power functions...\n"); printf("\n"); 
     test_sqrt(); printf("\n");
+    test_cubeRoot(); printf("\n");
     printf("\n");
 }
 
@@ -270,13 +284,13 @@ void test_number_theory_functions() {
 // CRYPTOGRAPHY FUNCTIONS //
 ////////////////////////////
 
-void test_sha512() {
-    ASSERT_strings(sha512("hello"), "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d", "test_sha512('hello')");
-    ASSERT_strings(sha512("world"), "486ea46224d1e0b4c1b6f0d61c4a1e0f0a9b6d3a", "test_sha512('world')");
+void test_sha256() {
+    ASSERT_strings(sha256("hello"), "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d", "test_sha512('hello')");
+    ASSERT_strings(sha256("world"), "486ea46224d1e0b4c1b6f0d61c4a1e0f0a9b6d3a", "test_sha512('world')");
 }
 void test_cryptography_functions() {
     printf("Testing cryptography functions...\n"); printf("\n");
-    test_sha512(); printf("\n");
+    test_sha256(); printf("\n");
     printf("\n");
 }
 

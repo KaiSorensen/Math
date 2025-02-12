@@ -125,15 +125,28 @@ extern double absVal(double x) {
 /////////////////////
 
 extern double squareRoot(double x, double precision) {
-    if (x < 0.0) ERROR("cannot SQRT negative number");
+    if (x < 0.0) ERROR("cannot square root negative number");
     if (x == 0.0) return 0.0;
 
     double aprx = x / 2;
     while (absVal((aprx * aprx) - x) > precision) {
         aprx = (aprx + x / aprx) / 2;
     }
+
     return aprx;
 };
+extern double cubeRoot(double x, double precision) {
+    if (x < 0.0) ERROR("cannot cube root negative number");
+    if (x == 0.0) return 0.0;
+
+    double aprx = x / 3;
+    while (absVal((aprx * aprx * aprx) - x) > precision) {
+        aprx = (2 * aprx + x / (aprx * aprx)) / 3;
+    }
+
+    return aprx;
+}
+
 extern double nthRoot(int n, double base) ;
 extern double power(double x, int y) {
     double result = 1;
@@ -269,22 +282,22 @@ int derangement(int n);
 int partition(int n);
 
 // Cryptography functions
-char* encrypt(char* text, int key);
-char* decrypt(char* text, int key);
+String encrypt(String text, int key);
+String decrypt(String text, int key);
 
 // helper for sha512
-char* padTo512(char* text) {
-    int _512bits = 512 / 8; // 64 bytes
+String padTo256(String text) {
+    int _256bits = 256/ 8; // 64 bytes
     int _64bits  = 64 / 8; // 8 bytes
 
     // calculate the padding parameters
     int textLen = strlen(text); // get the length of the string, using 64 bits
-    int padLen = _512bits - (textLen % _512bits); // calculate the number of bits needed to pad the string to a multiple of 512
-    if (padLen == _512bits) padLen = 0; // if len is a already multiple of 512, no padding is needed
-    if (padLen < _64bits) padLen += _512bits; // ensure space for appending 64 bit string length for sha512
+    int padLen = _256bits - (textLen % _256bits); // calculate the number of bits needed to pad the string to a multiple of 512
+    if (padLen == _256bits) padLen = 0; // if len is a already multiple of 512, no padding is needed
+    if (padLen < _64bits) padLen += _256bits; // ensure space for appending 64 bit string length for sha512
 
     // allocate and instantiate the padded string
-    char* padded = (char*)malloc(textLen + padLen + 1); // allocate memory for the padded string, +1 for null terminator
+    String padded = (String)malloc(textLen + padLen + 1); // allocate memory for the padded string, +1 for null terminator
     if (!padded) ERROR("failed to allocate memory for padded string");
     strcpy(padded, text); // copy the original string into the padded string
     padded[textLen] = 0b10000000;  // place the 1 bit (as 1000-0000 to be correct bit-wise)
@@ -293,36 +306,62 @@ char* padTo512(char* text) {
     // int positionOf64BitLen = textLen + padLen - ; // position of the 64 bit string length
     // printf("positionOf64BitLen: %d\n", positionOf64BitLen);
 
-    uint64_t bigEndianTextLen = __builtin_bswap64(textLen * 8); // ensures big-endian, as expected by sha512
+    uint64_t bigEndianTextLen = __builtin_bswap64(textLen * 8); // ensures big-endian, as expected by sha512... I hope :O
     memcpy(padded + textLen + padLen - _64bits, &bigEndianTextLen, sizeof(bigEndianTextLen)); // append the 64 bit string length to the end of the string
     padded[textLen + padLen] = '\0'; // null-terminate the string
 
     return padded;
 }
 
-extern char* sha512(char* text) {
+extern String sha256(String text) {
+    String paddedText = padTo256(text);
+    // Get the last 8 bytes (64 bits) from the padded message
+    uint64_t paddedTextLength = 0;
+    for (int i = 0; i < 8; i++) {
+        paddedTextLength <<= 8;  // Shift left by 8 bits
+        paddedTextLength |= (uint8_t)paddedText[paddedText.length() - 8 + i]; // Append byte
+    }
+    printf("paddedTextLength: %llx\n", paddedTextLength);
+
+
     // initial 8 hash value constants that are the first 64 bits of the fractional parts of the square roots of the first 8 prime numbers
-    uint64_t hash_constants[8];
+    uint32_t square_hash_constants[8];
     double i = 0;
     for(int j = 0; j < 8; i++) {
         if (is_prime(i)) {
-            double sqrt = squareRoot(i, 0.0000001);
+            double sqrt = squareRoot(i, 0.000000001);
             double fractional = sqrt - (int)sqrt;
-            uint64_t first64bits = fractional * 0xFFFFFFFFFFFFFFFF;
-            hash_constants[j] = first64bits;
-            printf("hash_constants[%d] as hex: %llx\n", (int)i, hash_constants[j]);
+            uint32_t first32bits = fractional * 0xFFFFFFFF; // mask the fractional part to 32 bits
+            square_hash_constants[j] = first32bits;
+            printf("square_hash_constants[%d] as hex: %llx\n", (int)i, square_hash_constants[j]);
             j++;
         }
     }
 
+    //initial 64 hash value constants that are the first 32 bits of the fractional parts of the cube roots of the first 64 prime numbers
+    uint32_t cube_hash_constants[64];
+    i = 0;
+    for(int j = 0; j < 64; i++) {
+        if (is_prime(i)) {
+            double cbrt = cubeRoot(i, 0.000000001);
+            double fractional = cbrt - (int)cbrt;
+            uint32_t first32bits = fractional * 0xFFFFFFFF; // mask the fractional part to 32 bits
+            cube_hash_constants[j] = first32bits;
+            printf("cube_hash_constants[%d] as hex: %llx\n", (int)i, cube_hash_constants[j]);
+            j++;
+        }
+    }
+
+    // message schedule array of 64 32-bit words
+    uint32_t message_schedule[64];
 
 
     return "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d";
 }
 
-char* hmac(char* text, char* key);
-char* sign(char* text, char* key);
-int verify(char* text, char* signature, char* key);
+String hmac(String text, String key);
+String sign(String text, String key);
+int verify(String text, String signature, String key);
 
 // Linear functions
 void add(double a[], double b[], double c[], int n, int m);
@@ -381,4 +420,4 @@ void k_modes(double a[], double b[], double c[], int n, int m);
 //
 
 // Algebra functions
-void solve_X(char* expression);
+void solve_X(String expression);
