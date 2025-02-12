@@ -285,23 +285,59 @@ int partition(int n);
 String encrypt(String text, int key);
 String decrypt(String text, int key);
 
-// helper for sha512
-String padTo256(String text) {
-    int _256bits = 256/ 8; // 64 bytes
+// HELPERS FOR SHA256 bruh why am I doing this
+uint32_t sigma0(uint32_t x) {
+    u_int32_t x1 = (x >> 2) | (x << (32-2));
+    u_int32_t x2 = (x >> 18) | (x << (32-18));
+    u_int32_t x3 = (x >> 3);
+    u_int32_t result = (x1 + x2 + x3) % 0xFFFFFFFF; //modded by 2^32 to prevent fuckery
+    return result;
+}
+uint32_t sigma1(uint32_t x) {
+    u_int32_t x1 = (x >> 17) | (x << (32-17));
+    u_int32_t x2 = (x >> 19) | (x << (32-19));
+    u_int32_t x3 = (x >> 10);
+    u_int32_t result = (x1 + x2 + x3) % 0xFFFFFFFF; //modded by 2^32 to prevent fuckery
+    return result;
+}
+uint32_t SIGMA0(uint32_t x) {
+    u_int32_t x1 = (x >> 2) | (x << (32-2));
+    u_int32_t x2 = (x >> 13) | (x << (32-13));
+    u_int32_t x3 = (x >> 22) | (x << (32-22));
+    u_int32_t result = (x1 + x2 + x3) % 0xFFFFFFFF; //modded by 2^32 to prevent fuckery
+    return result;
+}
+uint32_t SIGMA1(u_int32_t x) {
+    u_int32_t x1 = (x >> 6) | (x << (32-6));
+    u_int32_t x2 = (x >> 11) | (x << (32-11));
+    u_int32_t x3 = (x >> 25) | (x << (32-25));
+    u_int32_t result = (x1 + x2 + x3) % 0xFFFFFFFF; //modded by 2^32 to prevent fuckery
+    return result;
+}
+// choose function, it returns the value of the majority function
+uint32_t CH(uint32_t x, uint32_t y, uint32_t z) {
+    return (x & y) ^ (~x & z);
+}
+// majority function, it returns the bitwise 
+uint32_t MAJ(uint32_t x, uint32_t y, uint32_t z) {
+    return (x & y) ^ (x & z) ^ (y & z);
+}
+String padTo512(String text) {
+    int _512bits = 512/ 8; // 64 bytes
     int _64bits  = 64 / 8; // 8 bytes
 
     // calculate the padding parameters
     int textLen = strlen(text); // get the length of the string, using 64 bits
-    int padLen = _256bits - (textLen % _256bits); // calculate the number of bits needed to pad the string to a multiple of 512
-    if (padLen == _256bits) padLen = 0; // if len is a already multiple of 512, no padding is needed
-    if (padLen < _64bits) padLen += _256bits; // ensure space for appending 64 bit string length for sha512
+    int padLen = _512bits - (textLen % _512bits); // calculate the number of bits needed to pad the string to a multiple of 512
+    if (padLen == _512bits) padLen = 0; // if len is a already multiple of 512, no padding is needed
+    if (padLen < _64bits) padLen += _512bits; // ensure space for appending 64 bit string length for sha512
 
     // allocate and instantiate the padded string
     String padded = (String)malloc(textLen + padLen + 1); // allocate memory for the padded string, +1 for null terminator
     if (!padded) ERROR("failed to allocate memory for padded string");
     strcpy(padded, text); // copy the original string into the padded string
     padded[textLen] = 0b10000000;  // place the 1 bit (as 1000-0000 to be correct bit-wise)
-    for (int i = 1; i < padLen; i++) padded[textLen + i] = 0; // pad the string with 0's, note that printf will terminate as soon as it hits a 0
+    for (int i = 1; i < padLen; i++) padded[textLen + i] = '0'; // THIS IS NOT THE OFFICIAL SHA-256, I'm doing '0' and not 0 for convenience
 
     // int positionOf64BitLen = textLen + padLen - ; // position of the 64 bit string length
     // printf("positionOf64BitLen: %d\n", positionOf64BitLen);
@@ -312,17 +348,27 @@ String padTo256(String text) {
 
     return padded;
 }
-
+// AND HERE WE GO
 extern String sha256(String text) {
-    String paddedText = padTo256(text);
-    // Get the last 8 bytes (64 bits) from the padded message
-    uint64_t paddedTextLength = 0;
-    for (int i = 0; i < 8; i++) {
-        paddedTextLength <<= 8;  // Shift left by 8 bits
-        paddedTextLength |= (uint8_t)paddedText[paddedText.length() - 8 + i]; // Append byte
-    }
-    printf("paddedTextLength: %llx\n", paddedTextLength);
+    String paddedText = padTo512(text);
 
+    // Extract the blocks of 512 bits each, then extract the 32 bit words from each block
+    int paddedSize = strlen(text);  
+    paddedSize += (512 / 8) - (paddedSize % (512 / 8)); 
+
+    int blockSize = 512 / 8;
+    int numBlocks = paddedSize / blockSize;
+
+    // Use uint32_t for words instead of char arrays, since we won't need the chars anymore
+    uint32_t blocks[numBlocks][blockSize / sizeof(uint32_t)];
+
+    // Copy data into blocks and then words
+    for (int i = 0; i < numBlocks; i++) {
+        for (int j = 0; j < blockSize / sizeof(uint32_t); j++) {
+            memcpy(&blocks[i][j], text + i * blockSize + j * sizeof(uint32_t), sizeof(uint32_t));
+        }
+    }
+    // now we have the blocks of 512 bits each, and the 32 bit words from each block
 
     // initial 8 hash value constants that are the first 64 bits of the fractional parts of the square roots of the first 8 prime numbers
     uint32_t square_hash_constants[8];
@@ -333,7 +379,7 @@ extern String sha256(String text) {
             double fractional = sqrt - (int)sqrt;
             uint32_t first32bits = fractional * 0xFFFFFFFF; // mask the fractional part to 32 bits
             square_hash_constants[j] = first32bits;
-            printf("square_hash_constants[%d] as hex: %llx\n", (int)i, square_hash_constants[j]);
+            // printf("square_hash_constants[%d] as hex: %llx\n", (int)i, square_hash_constants[j]);
             j++;
         }
     }
@@ -347,16 +393,63 @@ extern String sha256(String text) {
             double fractional = cbrt - (int)cbrt;
             uint32_t first32bits = fractional * 0xFFFFFFFF; // mask the fractional part to 32 bits
             cube_hash_constants[j] = first32bits;
-            printf("cube_hash_constants[%d] as hex: %llx\n", (int)i, cube_hash_constants[j]);
+            // printf("cube_hash_constants[%d] as hex: %llx\n", (int)i, cube_hash_constants[j]);
             j++;
         }
     }
 
     // message schedule array of 64 32-bit words
-    uint32_t message_schedule[64];
+    uint32_t message_schedule[numBlocks][64];
+    for (int i = 0; i < numBlocks; i++) {
+        int j;
+        for (j = 0; j < 16; j++) {
+            // copy the first 16 words from the block into the message schedule
+            message_schedule[i][j] = blocks[i][j];
+        }
+        for (; j < 64; j++) {
+            // generate the remaining 48 words
+            message_schedule[i][j] = ( (sigma1(message_schedule[i][j - 2])) + (message_schedule[i][j - 7]) + (sigma0(message_schedule[i][j - 15])) + (message_schedule[i][j - 16]) ) % 0xFFFFFFFF; //modded by 2^32 to prevent fuckery
+        }
+    }
 
+    // now we have everything we need to start the hashing process
 
-    return "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d";
+    // initialize the working variables
+    uint32_t a, b, c, d, e, f, g, h;
+    a = square_hash_constants[0];
+    b = square_hash_constants[1];
+    c = square_hash_constants[2]; 
+    d = square_hash_constants[3];
+    e = square_hash_constants[4];
+    f = square_hash_constants[5];
+    g = square_hash_constants[6];
+    h = square_hash_constants[7];
+
+    // for each block
+    for(int i = 0; i < numBlocks; i++) {
+        for (int j = 0; j < 64; j++) {
+            // prepare the message schedule
+            uint32_t t1 = h + SIGMA1(e) + CH(e, f, g) + cube_hash_constants[j] + message_schedule[i][j];
+            uint32_t t2 = SIGMA0(a) + MAJ(a, b, c);
+            h = g;
+            g = f;
+            f = e;
+            e = d + t1;
+            d = c;
+            c = b;
+            b = a;
+            a = t1 + t2;
+        }
+    }
+
+    // concatentate a-h values into a single string
+    uint32_t hash[8] = {a, b, c, d, e, f, g, h};
+    String hashString = (char*)malloc(32); // 64 hex characters + null terminator
+    for (int i = 0; i < 8; i++) {
+        sprintf(hashString + i * 8, "%08x", hash[i]);
+    }
+
+    return hashString;
 }
 
 String hmac(String text, String key);

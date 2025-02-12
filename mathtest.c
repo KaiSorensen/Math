@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "math.h"
 
@@ -79,9 +80,10 @@ void ASSERT_array_doubles(double* actual, double* expected, int length, String f
     } 
     printf("\t%s  %s\n", funcName, PASSED); passed++;
 }
-void ASSERT_strings(String actual, String expected, String funcName) {
+void ASSERT_strings(String actual, String expected, String funcName, int freeInput) {
     if (strcmp(actual, expected) != 0) {printf("\t%s  %s (expected: %s -- found: %s)\n", funcName, FAILED, expected, actual); failed++;} 
     else {printf("\t%s  %s\n", funcName, PASSED); passed++;}
+    if (freeInput) free(actual);
 }
 
 
@@ -285,8 +287,8 @@ void test_number_theory_functions() {
 ////////////////////////////
 
 void test_sha256() {
-    ASSERT_strings(sha256("hello"), "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d", "test_sha512('hello')");
-    ASSERT_strings(sha256("world"), "486ea46224d1e0b4c1b6f0d61c4a1e0f0a9b6d3a", "test_sha512('world')");
+    ASSERT_strings(sha256("RedBlueBlock"), "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d", "test_sha512('hello')", 1);
+    ASSERT_strings(sha256("world"), "486ea46224d1e0b4c1b6f0d61c4a1e0f0a9b6d3a", "test_sha512('world')", 1);
 }
 void test_cryptography_functions() {
     printf("Testing cryptography functions...\n"); printf("\n");

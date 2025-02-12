@@ -95,7 +95,6 @@ int factorial(int x);
 // // Cryptography functions
 // String encrypt(String text, int key);
 // String decrypt(String text, int key);
-String padTo256(String text);
 String sha256(String text);
 // String hmac(String text, String key);
 // String sign(String text, String key);
