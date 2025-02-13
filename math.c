@@ -290,28 +290,28 @@ uint32_t sigma0(uint32_t x) {
     u_int32_t x1 = (x >> 2) | (x << (32-2));
     u_int32_t x2 = (x >> 18) | (x << (32-18));
     u_int32_t x3 = (x >> 3);
-    u_int32_t result = (x1 + x2 + x3) % 0xFFFFFFFF; //modded by 2^32 to prevent fuckery
+    u_int32_t result = (x1 + x2 + x3); //modded by 2^32 to prevent fuckery
     return result;
 }
 uint32_t sigma1(uint32_t x) {
     u_int32_t x1 = (x >> 17) | (x << (32-17));
     u_int32_t x2 = (x >> 19) | (x << (32-19));
     u_int32_t x3 = (x >> 10);
-    u_int32_t result = (x1 + x2 + x3) % 0xFFFFFFFF; //modded by 2^32 to prevent fuckery
+    u_int32_t result = (x1 + x2 + x3); //modded by 2^32 to prevent fuckery
     return result;
 }
 uint32_t SIGMA0(uint32_t x) {
     u_int32_t x1 = (x >> 2) | (x << (32-2));
     u_int32_t x2 = (x >> 13) | (x << (32-13));
     u_int32_t x3 = (x >> 22) | (x << (32-22));
-    u_int32_t result = (x1 + x2 + x3) % 0xFFFFFFFF; //modded by 2^32 to prevent fuckery
+    u_int32_t result = (x1 + x2 + x3); //modded by 2^32 to prevent fuckery
     return result;
 }
 uint32_t SIGMA1(u_int32_t x) {
     u_int32_t x1 = (x >> 6) | (x << (32-6));
     u_int32_t x2 = (x >> 11) | (x << (32-11));
     u_int32_t x3 = (x >> 25) | (x << (32-25));
-    u_int32_t result = (x1 + x2 + x3) % 0xFFFFFFFF; //modded by 2^32 to prevent fuckery
+    u_int32_t result = (x1 + x2 + x3); //modded by 2^32 to prevent fuckery
     return result;
 }
 // choose function, it returns the value of the majority function
@@ -444,10 +444,11 @@ extern String sha256(String text) {
 
     // concatentate a-h values into a single string
     uint32_t hash[8] = {a, b, c, d, e, f, g, h};
-    String hashString = (char*)malloc(32); // 64 hex characters + null terminator
+    String hashString = (char*)malloc(33); // 64 hex characters + null terminator
     for (int i = 0; i < 8; i++) {
         sprintf(hashString + i * 8, "%08x", hash[i]);
     }
+    hashString[64] = '\0'; // null-terminate the string
 
     return hashString;
 }
@@ -457,9 +458,50 @@ String sign(String text, String key);
 int verify(String text, String signature, String key);
 
 // Linear functions
-void add(double a[], double b[], double c[], int n, int m);
-void subtract(double a[], double b[], double c[], int n, int m);
-void multiply(double a[], double b[], double c[], int n, int m);
+extern double** matrix_add(double** a, double** b, int colLen, int rowLen) {
+    double** result = (double**)malloc(colLen * sizeof(double*));
+    for (int i = 0; i < colLen; i++) {
+        result[i] = (double*)malloc(rowLen * sizeof(double));
+    }
+
+    for (int i = 0; i < colLen; i++) {
+        for (int j = 0; j < rowLen; j++) {
+            result[i][j] = a[i][j] + b[i][j];
+        }
+    }
+
+    return result;
+}
+double** matrix_subtract(double** a, double** b, int colLen, int rowLen) {
+    double** result = (double**)malloc(colLen * sizeof(double*));
+    for (int i = 0; i < colLen; i++) {
+        result[i] = (double*)malloc(rowLen * sizeof(double));
+    }
+
+    for (int i = 0; i < colLen; i++) {
+        for (int j = 0; j < rowLen; j++) {
+            result[i][j] = a[i][j] - b[i][j];
+        }
+    }
+    return result;
+}
+
+
+double** matrix_scale(double** a, double scalar, int colLen, int rowLen) {
+    double** result = (double**)malloc(colLen * sizeof(double*));
+    for (int i = 0; i < colLen; i++) {
+        result[i] = (double*)malloc(rowLen * sizeof(double));
+    }
+
+    for (int i = 0; i < colLen; i++) {
+        for (int j = 0; j < rowLen; j++) {
+            result[i][j] = a[i][j] * scalar;
+        }
+    }
+    return result;
+}
+
+
 void dot_product(double a[], double b[], double c[], int n, int m);
 void cross_product(double a[], double b[], double c[], int n, int m);
 void transpose(double a[], double b[], int n, int m);

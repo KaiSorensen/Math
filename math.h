@@ -102,9 +102,9 @@ String sha256(String text);
 // int diffie_hellman(int a, int b, int p);
 
 // // Linear algebra functions
-// void add(double a[], double b[], double c[], int n, int m);
-// void subtract(double a[], double b[], double c[], int n, int m);
-// void multiply(double a[], double b[], double c[], int n, int m);
+double** matrix_add(double** a, double** b, int colLen, int rowLen);
+double** matrix_subtract(double** a, double** b, int colLen, int rowLen);
+double** matrix_scale(double** a, double scalar, int colLen, int rowLen);
 // void dot_product(double a[], double b[], double c[], int n, int m);
 // void cross_product(double a[], double b[], double c[], int n, int m);
 // void transpose(double a[], double b[], int n, int m);

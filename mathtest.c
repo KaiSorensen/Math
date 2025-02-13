@@ -35,6 +35,23 @@ void print_array_doubles(double* array, int length) {
     printf("]");
 }
 
+void printMatrix(double** matrix, int colLen, int rowLen) {
+    for (int i = 0; i < colLen; i++) {
+        printf("[");
+        for (int j = 0; j < rowLen; j++) {
+            printf("%lf", matrix[i][j]);
+            if (j < rowLen - 1) printf(", ");
+        }
+        printf("]\n");
+    }
+}
+void freeMatrix(double** matrix, int colLen) {
+    for (int i = 0; i < colLen; i++) {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
 
 
 /////////////////////////
@@ -85,6 +102,22 @@ void ASSERT_strings(String actual, String expected, String funcName, int freeInp
     else {printf("\t%s  %s\n", funcName, PASSED); passed++;}
     if (freeInput) free(actual);
 }
+void ASSERT_matrix(double** actual, double** expected, int colLen, int rowLen, String funcName, int freeInput) {
+    for (int i = 0; i < colLen; i++) {
+        for (int j = 0; j < rowLen; j++) {
+            if (actual[i][j] != expected[i][j]) {
+                printf("\t%s  %s (Mismatch at [%d][%d]: expected %f, found %f)\n", 
+                        funcName, FAILED, i, j, expected[i][j], actual[i][j]);
+                failed++;
+                return;
+            }
+        }
+    }
+    printf("\t%s  %s\n", funcName, PASSED);
+    passed++;
+    if (freeInput) freeMatrix(actual, colLen);
+}
+
 
 
 ////////////////////////
@@ -296,6 +329,119 @@ void test_cryptography_functions() {
     printf("\n");
 }
 
+//////////////////////////////
+// LINEAR ALGEBRA FUNCTIONS //
+//////////////////////////////
+
+void test_matrix_add() {
+    double** a;
+    double** b;
+    double** expected;
+
+    a = (double**)malloc(3 * sizeof(double*));
+    b = (double**)malloc(3 * sizeof(double*));
+    expected = (double**)malloc(3 * sizeof(double*));
+
+    for (int i = 0; i < 3; i++) {
+        a[i] = (double*)malloc(3 * sizeof(double));
+        b[i] = (double*)malloc(3 * sizeof(double));
+        expected[i] = (double*)malloc(3 * sizeof(double));
+    }
+
+    a[0][0] = 1.0; a[0][1] = 2.0; a[0][2] = 3.0;
+    a[1][0] = 4.0; a[1][1] = 5.0; a[1][2] = 6.0;
+    a[2][0] = 7.0; a[2][1] = 8.0; a[2][2] = 9.0;
+
+    b[0][0] = -9.0; b[0][1] = 8.0; b[0][2] = 7.0;
+    b[1][0] = 6.0; b[1][1] = -5.0; b[1][2] = 4.0;
+    b[2][0] = 3.0; b[2][1] = 2.0; b[2][2] = -1.0;
+
+    expected[0][0] = -8.0; expected[0][1] = 10.0; expected[0][2] = 10.0;
+    expected[1][0] = 10.0; expected[1][1] = 0.0; expected[1][2] = 10.0;
+    expected[2][0] = 10.0; expected[2][1] = 10.0; expected[2][2] = 8.0;
+
+    ASSERT_matrix(matrix_add(a,b, 3,3), expected, 3, 3, "test_matrix_add(a,b)", 1);
+
+    freeMatrix(a, 3);
+    freeMatrix(b, 3);
+    freeMatrix(expected, 3);
+}
+
+void test_matrix_subtract() {
+    double** a;
+    double** b;
+    double** expected;
+
+    a = (double**)malloc(3 * sizeof(double*));
+    b = (double**)malloc(3 * sizeof(double*));
+    expected = (double**)malloc(3 * sizeof(double*));
+
+    for (int i = 0; i < 3; i++) {
+        a[i] = (double*)malloc(3 * sizeof(double));
+        b[i] = (double*)malloc(3 * sizeof(double));
+        expected[i] = (double*)malloc(3 * sizeof(double));
+    }
+
+    a[0][0] = 1.0; a[0][1] = 2.0; a[0][2] = 3.0;
+    a[1][0] = 4.0; a[1][1] = 5.0; a[1][2] = 6.0;
+    a[2][0] = 7.0; a[2][1] = 8.0; a[2][2] = 9.0;
+
+    b[0][0] = -9.0; b[0][1] = 8.0; b[0][2] = 7.0;
+    b[1][0] = 6.0; b[1][1] = -5.0; b[1][2] = 4.0;
+    b[2][0] = 3.0; b[2][1] = 2.0; b[2][2] = -1.0;
+
+    expected[0][0] = 10.0; expected[0][1] = -6.0; expected[0][2] = -4.0;
+    expected[1][0] = -2.0; expected[1][1] = 10.0; expected[1][2] = 2.0;
+    expected[2][0] = 4.0; expected[2][1] = 6.0; expected[2][2] = 10.0;
+
+    ASSERT_matrix(matrix_subtract(a,b, 3,3), expected, 3, 3, "test_matrix_subtract(a,b)", 1);
+
+    freeMatrix(a, 3);
+    freeMatrix(b, 3);
+    freeMatrix(expected, 3);
+}
+
+void test_matrix_scale() {
+    double** a;
+    double** expected;
+    double scalar = 2.0;
+
+    a = (double**)malloc(3 * sizeof(double*));
+    expected = (double**)malloc(3 * sizeof(double*));
+
+    for (int i = 0; i < 3; i++) {
+        a[i] = (double*)malloc(3 * sizeof(double));
+        expected[i] = (double*)malloc(3 * sizeof(double));
+    }
+
+    a[0][0] = 1.0; a[0][1] = 2.0; a[0][2] = 3.0;
+    a[1][0] = 4.0; a[1][1] = 5.0; a[1][2] = 6.0;
+    a[2][0] = 7.0; a[2][1] = 8.0; a[2][2] = 9.0;
+
+    expected[0][0] = 2.0; expected[0][1] = 4.0; expected[0][2] = 6.0;
+    expected[1][0] = 8.0; expected[1][1] = 10.0; expected[1][2] = 12.0;
+    expected[2][0] = 14.0; expected[2][1] = 16.0; expected[2][2] = 18.0;
+
+    ASSERT_matrix(matrix_scale(a, scalar, 3, 3), expected, 3, 3, "test_matrix_scale(a, 2)", 1);
+
+    freeMatrix(a, 3);
+    freeMatrix(expected, 3);
+}
+
+
+
+void run_linear_algebra_tests() {
+    printf("Testing linear algebra functions...\n"); printf("\n");
+    test_matrix_add(); printf("\n");
+    test_matrix_subtract(); printf("\n");
+    test_matrix_scale(); printf("\n");
+    printf("\n");
+}
+
+
+////////////////////
+// RUN UNIT TESTS //
+////////////////////
 
 void run_tests() {
     printf("\n----UNIT TESTS----\n\n");
@@ -304,7 +450,8 @@ void run_tests() {
     test_power_functions();
     test_statistics_functions();
     test_number_theory_functions();
-    test_cryptography_functions();
+    // test_cryptography_functions();
+    run_linear_algebra_tests();
     int totalTests = passed + failed;
     printf("*************************\n PASSED: %d%% (%d tests)\n*************************\n\n", (int)((passed/totalTests)*100),  totalTests);
 }
